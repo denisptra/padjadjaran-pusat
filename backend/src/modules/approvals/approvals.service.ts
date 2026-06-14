@@ -6,12 +6,14 @@ import {
 import { ApprovalRepository } from '../../core/repositories/approval.repository';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { PrismaService } from '../../core/prisma/prisma.service';
+import { MemberUtilsService } from '../../core/utils/member-utils.service';
 import { UserStatus, Role } from '@prisma/client';
 
 @Injectable()
 export class ApprovalsService {
   constructor(
     private readonly approvalRepository: ApprovalRepository,
+    private readonly memberUtils: MemberUtilsService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -134,12 +136,10 @@ export class ApprovalsService {
       if (status === 'approved') {
         if (approval.type === 'registration') {
           // Generate E-KTA
-          const ktaNumber = await this.generateKtaNumber(
-            tx,
+          const ktaNumber = await this.memberUtils.generateKtaNumber(
             approval.creatorId,
+            tx,
           );
-          const expiryDate = new Date();
-          expiryDate.setFullYear(expiryDate.getFullYear() + 2);
 
           await tx.memberProfile.update({
             where: { userId: approval.creatorId },
@@ -165,10 +165,10 @@ export class ApprovalsService {
           content = 'Selamat! Pendaftaran Anda telah disetujui. E-KTA Anda telah diterbitkan.';
         } else if (status === 'revision') {
           title = 'Revisi Berkas Diperlukan';
-          content = `Pendaftaran Anda memerlukan revisi berkas: ${notes || 'Silakan periksa kembali berkas Anda.'}`;
+          content = \`Pendaftaran Anda memerlukan revisi berkas: \${notes || 'Silakan periksa kembali berkas Anda.'}\`;
         } else if (status === 'rejected') {
           title = 'Pendaftaran Ditolak';
-          content = `Pendaftaran Anda ditolak: ${notes || ''}`;
+          content = \`Pendaftaran Anda ditolak: \${notes || ''}\`;
         }
 
         if (title && content) {
@@ -189,53 +189,6 @@ export class ApprovalsService {
 
       return updatedApproval;
     });
-  }
-
-  private async generateKtaNumber(tx: any, userId: string) {
-    const profile = await tx.memberProfile.findUnique({
-      where: { userId },
-    });
-
-    const year = new Date().getFullYear().toString();
-    
-    // Type Codes based on requirement: Khusus=01, Pencak Silat=02, Umum=03
-    let typeCode = '03'; // Default Umum
-    if (profile?.memberType === 'khusus') typeCode = '01';
-    else if (profile?.memberType === 'pencak_silat') typeCode = '02';
-
-    // Nationality Code: WNI=1, WNA=2
-    const natCode = profile?.nationality === 'WNA' ? '2' : '1';
-
-    // We want the sequence to be specific to this year, type, and nationality
-    const prefix = `${year}${typeCode}${natCode}`;
-
-    // Find the latest KTA for this prefix
-    const latestMember = await tx.memberProfile.findFirst({
-      where: {
-        ktaNumber: {
-          startsWith: prefix,
-        },
-      },
-      orderBy: {
-        ktaNumber: 'desc',
-      },
-      select: {
-        ktaNumber: true,
-      },
-    });
-
-    let nextSequenceNumber = 1;
-    if (latestMember && latestMember.ktaNumber) {
-      // Extract the sequence part (last 4 digits)
-      const lastSequenceStr = latestMember.ktaNumber.substring(prefix.length);
-      const lastSequence = parseInt(lastSequenceStr, 10);
-      if (!isNaN(lastSequence)) {
-        nextSequenceNumber = lastSequence + 1;
-      }
-    }
-
-    const sequenceStr = nextSequenceNumber.toString().padStart(4, '0');
-    return `${prefix}${sequenceStr}`;
   }
 
   async approve(id: string, processorId: string) {

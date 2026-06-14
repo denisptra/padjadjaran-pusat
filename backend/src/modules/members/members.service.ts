@@ -8,10 +8,8 @@ import { MemberProfileRepository } from '../../core/repositories/member-profile.
 import { UserRepository } from '../../core/repositories/user.repository';
 import { PaginationDto } from '../../common/dto/pagination.dto';
 import { SecurityUtils } from '../../core/utils/security.utils';
+import { MemberUtilsService } from '../../core/utils/member-utils.service';
 import { Role, UserStatus, MemberType } from '@prisma/client';
-import { PrismaService } from '../../core/prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import * as argon2 from 'argon2';
 
 @Injectable()
 export class MembersService {
@@ -19,6 +17,7 @@ export class MembersService {
     private readonly memberRepository: MemberProfileRepository,
     private readonly userRepository: UserRepository,
     private readonly securityUtils: SecurityUtils,
+    private readonly memberUtils: MemberUtilsService,
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -564,44 +563,7 @@ export class MembersService {
 
         const encryptedNik = dto.nik ? this.securityUtils.encrypt(dto.nik) : null;
 
-        const year = new Date().getFullYear().toString();
-        
-        // Type Codes based on requirement: Khusus=01, Pencak Silat=02, Umum=03
-        let typeCode = '03'; // Default Umum
-        if (dto.memberType === 'khusus') typeCode = '01';
-        else if (dto.memberType === 'pencak_silat') typeCode = '02';
-
-        // Nationality Code: WNI=1, WNA=2
-        const natCode = dto.nationality === 'WNA' ? '2' : '1';
-
-        const prefix = `${year}${typeCode}${natCode}`;
-
-        // Find the latest KTA for this prefix
-        const latestMember = await tx.memberProfile.findFirst({
-          where: {
-            ktaNumber: {
-              startsWith: prefix,
-            },
-          },
-          orderBy: {
-            ktaNumber: 'desc',
-          },
-          select: {
-            ktaNumber: true,
-          },
-        });
-
-        let nextSequenceNumber = 1;
-        if (latestMember && latestMember.ktaNumber) {
-          const lastSequenceStr = latestMember.ktaNumber.substring(prefix.length);
-          const lastSequence = parseInt(lastSequenceStr, 10);
-          if (!isNaN(lastSequence)) {
-            nextSequenceNumber = lastSequence + 1;
-          }
-        }
-
-        const orderStr = nextSequenceNumber.toString().padStart(4, '0');
-        const ktaNumber = `${prefix}${orderStr}`;
+        const ktaNumber = await this.memberUtils.generateKtaNumber(u.id, tx);
 
         let mType: MemberType = MemberType.umum;
         if (dto.memberType === 'khusus') mType = MemberType.khusus;

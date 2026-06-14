@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { SecurityUtils } from '../utils/security.utils';
+import { MemberUtilsService } from '../utils/member-utils.service';
 import { UserRepository } from './user.repository';
 import { MemberProfileRepository } from './member-profile.repository';
 import { RegionRepository } from './region.repository';
@@ -42,7 +43,7 @@ const repositories = [
 @Global()
 @Module({
   imports: [PrismaModule],
-  providers: [...repositories, SecurityUtils],
-  exports: [...repositories, SecurityUtils],
+  providers: [...repositories, SecurityUtils, MemberUtilsService],
+  exports: [...repositories, SecurityUtils, MemberUtilsService],
 })
 export class RepositoriesModule {}
