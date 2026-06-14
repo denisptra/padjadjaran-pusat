@@ -1,0 +1,40 @@
+# Root Gitignore
+# Ignore OS specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Ignore temporary and user files in root
+*.log
+*.tmp
+*.bak
+*.swp
+*.db
+*.db-journal
+
+text.txt
+image.png
+image copy.png
+image copy 2.png
+image copy 3.png
+dummy_photo.png
+dummy_payment.png
+.env
+vps_setup_report.txt
+
+# Dependencies
+node_modules/
+
+# Ignore build artifacts and dependencies in subfolders
+client/node_modules/
+client/dist/
+client/test-results/
+client/playwright-report/
+client/.env
+client/.env.local
+
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/uploads/*
+!backend/uploads/.gitkeep

@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  padjajaran_db:
+    image: postgres:15-alpine
+    container_name: padjajaran_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-OryzaLokabasa123!}
+      POSTGRES_DB: ${DB_NAME:-padjajaran}
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  padjajaran_backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: padjajaran_backend
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-OryzaLokabasa123!}@padjajaran_db:5432/${DB_NAME:-padjajaran}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-7a6c9d5e3f1b4a0c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-15m}
+      JWT_REFRESH_EXPIRATION_DAYS: ${JWT_REFRESH_EXPIRATION_DAYS:-7}
+      COOKIE_SECRET: ${COOKIE_SECRET:-b5a6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-4c7d9b0e2f4a6c8e0d2f4a6c8e0d2f4a}
+      MAIL_PROVIDER: ${MAIL_PROVIDER:-smtp}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-pusatpadjadjaran@gmail.com}
+      SMTP_PASS: ${SMTP_PASS:-pvaw ovvu dwie xsdi}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_FROM: ${SMTP_FROM:-PPS Padjadjaran <pusatpadjadjaran@gmail.com>}
+      CLIENT_URL: ${CLIENT_URL:-http://localhost:80}
+      APP_PORT: 5001
+      NODE_ENV: production
+    depends_on:
+      - padjajaran_db
+    volumes:
+      - backend_uploads:/app/uploads
+
+  padjajaran_frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://154.19.37.25:5001/api}
+    container_name: padjajaran_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - padjajaran_backend
+
+volumes:
+  postgres_data:
+  backend_uploads:
