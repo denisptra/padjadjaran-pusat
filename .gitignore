@@ -25,6 +25,15 @@ vps_setup_report.txt
 # Dependencies
 node_modules/
 
+# Temp scripts
+vps_*.js
+fix_oryza.js
+deploy_vps.js
+setup_vps.js
+cleanup.bat
+run_setup.bat
+run_wallet_api.bat
+
 # Ignore build artifacts and dependencies in subfolders
 client/node_modules/
 client/dist/
