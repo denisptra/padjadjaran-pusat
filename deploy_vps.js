@@ -34,19 +34,23 @@ SMTP_PASS='pvaw ovvu dwie xsdi'
 SMTP_SECURE=false
 SMTP_FROM='PPS Padjadjaran <pusatpadjadjaran@gmail.com>'
 VITE_API_URL=http://154.19.37.25:5001/api
-CLIENT_URL=http://154.19.37.25`;
-        
-        await execCmd("cat << 'EOF' > ~/padjajaran-portal/.env\n" + envContent + "\nEOF");
+CLIENT_URL=http://154.19.37.25:3001`;
 
-        console.log('--- Starting Backend and DB ---');
-        const res = await execCmd('cd ~/padjajaran-portal && docker-compose up -d --build padjajaran_db padjajaran_backend');
-        console.log(res.out);
-        console.error(res.errOut);
+await execCmd("cat << 'EOF' > ~/padjajaran-portal/.env\n" + envContent + "\nEOF");
 
-        console.log('--- Verifying ---');
-        const status = await execCmd('docker ps');
-        console.log(status.out);
-        
+console.log('--- Starting Backend, DB, and Frontend ---');
+// Clean up port 80 for system nginx first
+await execCmd('docker rm -f padjajaran_frontend || true');
+const res = await execCmd('cd ~/padjajaran-portal && docker-compose up -d --build');
+console.log(res.out);
+console.error(res.errOut);
+
+console.log('--- Starting System Nginx ---');
+await execCmd('systemctl start nginx || service nginx start');
+
+console.log('--- Verifying ---');
+const status = await execCmd('docker ps');
+console.log(status.out);
         conn.end();
     } catch (e) {
         console.error(e);

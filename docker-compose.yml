@@ -37,7 +37,7 @@ services:
       SMTP_PASS: ${SMTP_PASS:-pvaw ovvu dwie xsdi}
       SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_FROM: ${SMTP_FROM:-PPS Padjadjaran <pusatpadjadjaran@gmail.com>}
-      CLIENT_URL: ${CLIENT_URL:-http://localhost:80}
+      CLIENT_URL: ${CLIENT_URL:-http://154.19.37.25:3001}
       APP_PORT: 5001
       NODE_ENV: production
     depends_on:
@@ -54,7 +54,7 @@ services:
     container_name: padjajaran_frontend
     restart: always
     ports:
-      - "80:80"
+      - "3001:80"
     depends_on:
       - padjajaran_backend
 
