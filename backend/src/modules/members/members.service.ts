@@ -126,7 +126,7 @@ export class MembersService {
   }
 
   async update(id: string, dto: any) {
-    const member = await this.memberRepository.findOne({ id });
+    const member = await this.memberRepository.findOne({ id }, { user: true });
     if (!member) throw new NotFoundException('Member not found');
 
     const data: any = {};
