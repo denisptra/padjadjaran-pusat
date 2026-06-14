@@ -165,10 +165,10 @@ export class ApprovalsService {
           content = 'Selamat! Pendaftaran Anda telah disetujui. E-KTA Anda telah diterbitkan.';
         } else if (status === 'revision') {
           title = 'Revisi Berkas Diperlukan';
-          content = \`Pendaftaran Anda memerlukan revisi berkas: \${notes || 'Silakan periksa kembali berkas Anda.'}\`;
+          content = `Pendaftaran Anda memerlukan revisi berkas: ${notes || 'Silakan periksa kembali berkas Anda.'}`;
         } else if (status === 'rejected') {
           title = 'Pendaftaran Ditolak';
-          content = \`Pendaftaran Anda ditolak: \${notes || ''}\`;
+          content = `Pendaftaran Anda ditolak: ${notes || ''}`;
         }
 
         if (title && content) {

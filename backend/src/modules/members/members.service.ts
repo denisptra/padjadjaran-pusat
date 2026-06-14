@@ -10,6 +10,9 @@ import { PaginationDto } from '../../common/dto/pagination.dto';
 import { SecurityUtils } from '../../core/utils/security.utils';
 import { MemberUtilsService } from '../../core/utils/member-utils.service';
 import { Role, UserStatus, MemberType } from '@prisma/client';
+import { PrismaService } from '../../core/prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import * as argon2 from 'argon2';
 
 @Injectable()
 export class MembersService {
@@ -154,7 +157,7 @@ export class MembersService {
     if (dto.status !== undefined) userUpdateData.status = dto.status;
     if (dto.email !== undefined) {
       const email = dto.email.toLowerCase().trim();
-      if (email !== member.user?.email) {
+      if (email !== (member as any).user?.email) {
         const existing = await this.userRepository.findByEmail(email);
         if (existing) throw new BadRequestException('Email sudah digunakan oleh akun lain.');
         userUpdateData.email = email;
